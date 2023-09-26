@@ -1,9 +1,9 @@
 from collections import defaultdict
 ## CONSTANTS
-KEYWORDS = ['cout', 'cin', 'endl', 'if', 'else', 'while', 'for', 'int', 'float', 'bool', 'true', 'false', 'void', 'return', 'cout', 'cin', 'main', 'char', 'string', 'do', 'switch', 'case', 'break', 'continue', 'default', 'include', 'using', 'namespace', 'std']
+KEYWORDS = ['cout', 'cin', 'endl', 'if', 'else', 'while', 'for', 'int', 'float', 'bool', 'true', 'false', 'void', 'return', 'cout', 'cin', 'char', 'string', 'do', 'switch', 'case', 'break', 'continue', 'default', 'include', 'using', 'namespace', 'std']
 SEPARATORS = ['(', ')', '{', '}', '[', ']', ',']
 COMMENTS = ['//', '/*', '*/']
-PUNCTUATIONS = ['.', ':', ';', ',', '?', '!', '-', '\'', '"']
+PUNCTUATIONS = ['.', ':', ';', ',', '?', '!', '-', '\'']
 OPERATORS = ['+', '-', '*']
 DIGITS = [str(i) for i in range(10)]
 ## TOKENS
@@ -14,10 +14,10 @@ T_OPERATOR = 'operator'
 T_INT = 'integer'
 T_REAL = 'real'
 T_PUNC = 'punctuation'
+T_STRING = 'string'
 
 class Token:
-    def __init__(self, type, value):
-        self.type = type
+    def __init__(self, value):
         self.value = value
 
     def __repr__(self):
@@ -67,6 +67,7 @@ class Lexer:
         self._current += 1
         return True
     
+    # scan the string between " " and return it
     def scan_string(self):
         while self.peek() != '"' and not self.is_at_end():
             self.advance()
@@ -101,7 +102,7 @@ class Lexer:
             self.tokens[T_ID].append(id)
 
     def add_token(self, type, value):
-        self.tokens[type].append(Token(type, value))
+        self.tokens[type].append(Token(value))
     
     def scan_token(self):
         char = self.advance()
@@ -174,7 +175,7 @@ class Lexer:
             self.scan_id()
         # Handle string literals
         elif char == '"':
-            self.add_token(T_PUNC, self.scan_string())
+            self.add_token(T_STRING, self.scan_string())
         # Handle new line, space, tab, carriage return
         elif char == '\n':
             self._linepos += 1

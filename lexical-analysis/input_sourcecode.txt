@@ -1,1 +1,8 @@
-while (x > 1) y = 23.00;
+int main ( ) {
+for ( int i = 22; i <= 100; i = i + 1 ) {
+while ( i == 100 ) {
+cout << "Hello World!" << endl; //print out
+}
+}
+return 0;
+}
