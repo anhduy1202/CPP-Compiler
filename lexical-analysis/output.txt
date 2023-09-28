@@ -1,0 +1,9 @@
+TOKEN               LEXEME
+---------------------------
+keyword             int, for, int, while, cout, endl, return
+identifier          main, i, i, i, i, i
+separator           (, ), {, (, ), {, (, ), {, }, }, }
+operator            =, <=, =, +, ==, <<, <<
+integer             22, 100, 1, 100, 0
+punctuation         ;, ;, ;, ;
+string              "Hello World!"
