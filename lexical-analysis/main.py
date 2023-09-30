@@ -79,6 +79,8 @@ class Lexer:
     def scan_real(self):
         while self.peek() in self.digits:
             self.advance()
+        if not self.peek_next().isdigit():
+            raise Exception(f'Invalid operator at line {self._linepos}')
         if self.peek() == '.':
             self.advance()
         while self.peek() in self.digits:
@@ -98,6 +100,11 @@ class Lexer:
         # check if its a keyword
         if id in self.keywords:
             self.tokens[T_KEYWORD].append(id)
+            if id == "return":
+                pass
+            # trap state: if identifer is a digit
+            elif self.peek().isdigit() or self.peek_next().isdigit():
+                raise Exception(f'Invalid identifier at line {self._linepos}')
         else:
             self.tokens[T_ID].append(id)
 
@@ -110,6 +117,21 @@ class Lexer:
             self.add_token(T_SEP, char)
         # Handle operator with 1 character
         elif char in self.operators:
+            # Handle minus for integers and reals
+            if char == '-':
+                # trap state if next character is not a digit
+                if not self.peek().isdigit():
+                    raise Exception(f'Invalid operator at line {self._linepos}')
+                elif self.peek().isdigit():
+                    self.scan_int()
+                    self.add_token(T_INT, self.scan_int())
+                elif self.peek() == '.':
+                    if not self.peek_next().isdigit():
+                        raise Exception(f'Invalid operator at line {self._linepos}')
+                    self.scan_real()
+                    self.add_token(T_REAL, self.scan_real())
+                else:
+                    self.add_token(T_OPERATOR, char)
             self.add_token(T_OPERATOR, char)
         # Handle operator with 2 characters
         elif char == "!":
@@ -171,7 +193,7 @@ class Lexer:
                 int_number = self.line[self._start:self._current]
                 self.add_token(T_INT, int_number)
         # Handle identifiers
-        elif char.isalpha():
+        elif char.isalpha() or char == "_":
             self.scan_id()
         # Handle string literals
         elif char == '"':
