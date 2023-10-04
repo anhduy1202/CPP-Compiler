@@ -1,27 +1,59 @@
 from collections import defaultdict
+
 ## CONSTANTS
-KEYWORDS = ['cout', 'cin', 'endl', 'if', 'else', 'while', 'for', 'int', 'float', 'bool', 'true', 'false', 'void', 'return', 'cout', 'cin', 'char', 'string', 'do', 'switch', 'case', 'break', 'continue', 'default', 'include', 'using', 'namespace', 'std']
-SEPARATORS = ['(', ')', '{', '}', '[', ']', ',']
-COMMENTS = ['//', '/*', '*/']
-PUNCTUATIONS = ['.', ':', ';', ',', '?', '!', '-', '\'']
-OPERATORS = ['+', '-', '*']
+KEYWORDS = [
+    "cout",
+    "cin",
+    "endl",
+    "if",
+    "else",
+    "while",
+    "for",
+    "int",
+    "float",
+    "bool",
+    "true",
+    "false",
+    "void",
+    "return",
+    "cout",
+    "cin",
+    "char",
+    "string",
+    "do",
+    "switch",
+    "case",
+    "break",
+    "continue",
+    "default",
+    "include",
+    "using",
+    "namespace",
+    "std",
+]
+SEPARATORS = ["(", ")", "{", "}", "[", "]", ","]
+COMMENTS = ["//", "/*", "*/"]
+PUNCTUATIONS = [".", ":", ";", ",", "?", "!", "-", "'"]
+OPERATORS = ["+", "-", "*"]
 DIGITS = [str(i) for i in range(10)]
 ## TOKENS
-T_KEYWORD = 'keyword'
-T_SEP = 'separator'
-T_ID = 'identifier'
-T_OPERATOR = 'operator'
-T_INT = 'integer'
-T_REAL = 'real'
-T_PUNC = 'punctuation'
-T_STRING = 'string'
+T_KEYWORD = "keyword"
+T_SEP = "separator"
+T_ID = "identifier"
+T_OPERATOR = "operator"
+T_INT = "integer"
+T_REAL = "real"
+T_PUNC = "punctuation"
+T_STRING = "string"
+
 
 class Token:
     def __init__(self, value):
         self.value = value
 
     def __repr__(self):
-        return f'{self.value}'
+        return f"{self.value}"
+
 
 class Lexer:
     def __init__(self):
@@ -36,28 +68,28 @@ class Lexer:
         self._current = 0
         self._linepos = 1
         self.line = ""
-    
+
     # scan if its the end of the line
     def is_at_end(self):
         return self._current >= len(self.line)
-    
+
     # advance next character and return it
     def advance(self):
         self._current += 1
         return self.line[self._current - 1]
-    
+
     # peek next character
     def peek(self):
         if self.is_at_end():
-            return '\0'
+            return "\0"
         return self.line[self._current]
-    
+
     # peek next next character
     def peek_next(self):
         if self._current + 1 >= len(self.line):
-            return '\0'
+            return "\0"
         return self.line[self._current + 1]
-    
+
     # match if next character is expected
     def match(self, expected):
         if self.is_at_end():
@@ -66,37 +98,41 @@ class Lexer:
             return False
         self._current += 1
         return True
-    
+
     # scan the string between " " and return it
     def scan_string(self):
         while self.peek() != '"' and not self.is_at_end():
             self.advance()
         if self.is_at_end():
-            raise Exception(f'Unterminated string at line {self._linepos}')
+            raise Exception(f"Unterminated string at line {self._linepos}")
         self.advance()
-        return self.line[self._start:self._current]
+        return self.line[self._start : self._current]
 
     def scan_real(self):
         while self.peek() in self.digits:
             self.advance()
         if not self.peek_next().isdigit():
-            raise Exception(f'Invalid operator at line {self._linepos}')
-        if self.peek() == '.':
+            raise Exception(f"Invalid operator at line {self._linepos}")
+        if self.peek() == ".":
             self.advance()
         while self.peek() in self.digits:
             self.advance()
-        return self.line[self._start:self._current]
-    
+        return self.line[self._start : self._current]
+
     def scan_int(self):
         while self.peek() in self.digits:
             self.advance()
-        return self.line[self._start:self._current]
-    
+        int_num = self.line[self._start : self._current]
+        if int_num != '0' and int_num[0] == '0':
+            print("Warning: leading zero in integer, possibly oct")
+        else:
+            self.add_token(T_INT, int_num)
+
     # Peek next character and check if whole word is a keyword
     def scan_id(self):
-        while self.peek().isalnum() or self.peek() == '_':
+        while self.peek().isalnum() or self.peek() == "_":
             self.advance()
-        id = self.line[self._start:self._current]
+        id = self.line[self._start : self._current]
         # check if its a keyword
         if id in self.keywords:
             self.tokens[T_KEYWORD].append(id)
@@ -104,13 +140,13 @@ class Lexer:
                 pass
             # trap state: if identifer is a digit
             elif self.peek().isdigit() or self.peek_next().isdigit():
-                raise Exception(f'Invalid identifier at line {self._linepos}')
+                raise Exception(f"Invalid identifier at line {self._linepos}")
         else:
             self.tokens[T_ID].append(id)
 
     def add_token(self, type, value):
         self.tokens[type].append(Token(value))
-    
+
     def scan_token(self):
         char = self.advance()
         if char in self.separators:
@@ -118,16 +154,15 @@ class Lexer:
         # Handle operator with 1 character
         elif char in self.operators:
             # Handle minus for integers and reals
-            if char == '-':
+            if char == "-":
                 # trap state if next character is not a digit
                 if not self.peek().isdigit():
-                    raise Exception(f'Invalid operator at line {self._linepos}')
+                    raise Exception(f"Invalid operator at line {self._linepos}")
                 elif self.peek().isdigit():
                     self.scan_int()
-                    self.add_token(T_INT, self.scan_int())
-                elif self.peek() == '.':
+                elif self.peek() == ".":
                     if not self.peek_next().isdigit():
-                        raise Exception(f'Invalid operator at line {self._linepos}')
+                        raise Exception(f"Invalid operator at line {self._linepos}")
                     self.scan_real()
                     self.add_token(T_REAL, self.scan_real())
                 else:
@@ -163,16 +198,18 @@ class Lexer:
             if self.match("|"):
                 self.add_token(T_OPERATOR, "||")
         # Handle multiline and single line comments, division operator
-        elif char == '/':
-            if self.match('/'):
-                while self.peek() != '\n' and not self.is_at_end():
+        elif char == "/":
+            if self.match("/"):
+                while self.peek() != "\n" and not self.is_at_end():
                     self.advance()
-            elif self.match('*'):
-                while self.peek() != '*' and self.peek() != '/' and not self.is_at_end():
+            elif self.match("*"):
+                while (
+                    self.peek() != "*" and self.peek() != "/" and not self.is_at_end()
+                ):
                     self.advance()
-                if self.peek() == '*':
+                if self.peek() == "*":
                     self.advance()
-                    if self.peek() == '/':
+                    if self.peek() == "/":
                         self.advance()
             else:
                 self.tokens[T_OPERATOR].append(char)
@@ -181,17 +218,13 @@ class Lexer:
             self.tokens[T_PUNC].append(char)
         # Handle numbers
         elif char in self.digits:
-            while self.peek() in self.digits:
-                self.advance()
-            if self.peek() == '.' and self.peek_next() in self.digits:
+            self.scan_int()
+            if self.peek() == "." and self.peek_next() in self.digits:
                 self.advance()
                 while self.peek() in self.digits:
                     self.advance()
-                real_number = self.line[self._start:self._current]
+                real_number = self.line[self._start : self._current]
                 self.add_token(T_REAL, real_number)
-            else:
-                int_number = self.line[self._start:self._current]
-                self.add_token(T_INT, int_number)
         # Handle identifiers
         elif char.isalpha() or char == "_":
             self.scan_id()
@@ -199,16 +232,16 @@ class Lexer:
         elif char == '"':
             self.add_token(T_STRING, self.scan_string())
         # Handle new line, space, tab, carriage return
-        elif char == '\n':
+        elif char == "\n":
             self._linepos += 1
-        elif char == ' ' or char == '\t' or char == '\r':
+        elif char == " " or char == "\t" or char == "\r":
             pass
         else:
             # Handle invalid characters
-            raise Exception(f'Invalid character {char} at position {self._linepos}')
+            raise Exception(f"Invalid character {char} at position {self._linepos}")
 
     def tokenize(self, source_code):
-        with open(source_code, 'r') as f:
+        with open(source_code, "r") as f:
             self.line = f.read()
             while not self.is_at_end():
                 # reset start position
@@ -216,15 +249,17 @@ class Lexer:
                 self.scan_token()
                 self._linepos += 1
 
+
 def lexer():
     lexer = Lexer()
-    lexer.tokenize('input_sourcecode.txt')
+    lexer.tokenize("input_sourcecode.txt")
     # Print tokens and lexemes in 2 columns
-    print('TOKEN'.ljust(20) + 'LEXEME')
-    print('---------------------------')
+    print("TOKEN".ljust(20) + "LEXEME")
+    print("---------------------------")
     for token_type, token_list in lexer.tokens.items():
-        token_string = ', '.join([str(token) for token in token_list])
+        token_string = ", ".join([str(token) for token in token_list])
         print(token_type.ljust(20) + token_string)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     lexer()

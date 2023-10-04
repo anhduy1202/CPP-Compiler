@@ -1,8 +1,8 @@
 int main ( ) {
-for ( int i = 22; i <= 100; i = i + 1 ) {
-while ( i == 100 ) {
-cout << "Hello World!" << endl; //print out
-}
-}
-return 0;
+    for ( int i = 22; i <= 001; i = i + 1 ) {
+        while ( i == 100 ) {
+          cout << "Hello World!"; //print out
+        }
+    } 
+    return 0;
 }
