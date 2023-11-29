@@ -76,11 +76,6 @@ class Lexer:
     def generate_integer(self):
         number = self.current_char
         self.advance()
-        # Handle negative number
-        while number == '-' and self.current_char.isdigit():
-            number += self.current_char
-            self.advance()
-        
         while self.current_char is not None and self.current_char.isdigit():
             number += self.current_char
             self.advance()
