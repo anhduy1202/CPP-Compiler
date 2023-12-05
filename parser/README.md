@@ -1,15 +1,22 @@
 # Given Grammar
 G: 
 E → E + T | E – T | -E | T
+
 T → T * F | T/F | F
+
 F → int | (E)
+
 
 # Rewritten Grammar
 G1: 
 E -> TE’ | -EE'
+
 E’ -> +TE’ | -TE’ | ε
+
 T -> FT’
+
 T’ -> *FT’ | /FT’ | ε
+
 F -> int | (E)
 
 # Instruction:
